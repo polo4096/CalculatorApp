@@ -1,22 +1,28 @@
 package polo.edu.calculator;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button button0, button1, button2, button3, button4, button5, button6,
-            button7, button8, button9, buttonAdd, buttonSub, buttonDiv,
-            buttonMul, buttonEqual;
+    Button buttonEqual;
     TextView operationTextView, resultTextView;
+
+    LinearLayout tab;
 
     float firstValue, secondValue;
 
     boolean boolAddition, boolSub, boolMul, boolDiv;
+
+    Handler handler;
 
 
     @Override
@@ -24,28 +30,118 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        button0 = (Button) findViewById(R.id.button0);
-
-        button1 = (Button) findViewById(R.id.button1);
-        button2 = (Button) findViewById(R.id.button2);
-        button3 = (Button) findViewById(R.id.button3);
-        button4 = (Button) findViewById(R.id.button4);
-        button5 = (Button) findViewById(R.id.button5);
-        button6 = (Button) findViewById(R.id.button6);
-        button7 = (Button) findViewById(R.id.button7);
-        button8 = (Button) findViewById(R.id.button8);
-        button9 = (Button) findViewById(R.id.button9);
-
-        buttonAdd = (Button) findViewById(R.id.button_add);
-        buttonSub = (Button) findViewById(R.id.button_sub);
-        buttonMul = (Button) findViewById(R.id.button_mul);
-        buttonDiv = (Button) findViewById(R.id.button_div);
-
-        buttonEqual = (Button) findViewById(R.id.button_equal);
-
         operationTextView = (TextView) findViewById(R.id.operation);
 
         resultTextView = (TextView) findViewById(R.id.result);
+
+        tab = findViewById(R.id.tab);
+
+        buttonEqual = new Button(this);
+
+
+        buttonEqual.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                1.0f)
+        );
+        buttonEqual.setText("=");
+
+        //buttonEqual.setOnClickListener(myEqualHandler());  //Uncomment to use AsyncTask
+        buttonEqual.setOnClickListener(mySecondEqualHandler());  //Using Handler
+
+
+        tab.addView(buttonEqual);
+
+        handler = new Handler();
+    }
+
+    //HANDLER
+    View.OnClickListener mySecondEqualHandler() {
+
+        return new View.OnClickListener() {
+            public void onClick(View v) {
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        String stringTo = "";
+
+                        secondValue = Float.parseFloat(operationTextView.getText() + "");
+
+                        if ( boolAddition) {
+                            stringTo = firstValue+secondValue + "";
+
+                            boolAddition= false;
+                        }else if (boolSub) {
+                            stringTo = firstValue-secondValue + "";
+                            boolSub= false;
+                        }else if(boolMul) {
+                            stringTo = firstValue*secondValue + "";
+                            boolMul= false;
+                        }else if(boolDiv) {
+                            stringTo = firstValue/secondValue + "";
+                            boolDiv= false;
+                        }
+
+                        final String finalStringTo = stringTo;
+                        handler.post(
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+
+                                        resultTextView.setText(finalStringTo);
+                                        operationTextView.setText(null);
+
+                                    }
+                                }
+                        );
+                    }
+                };
+                new Thread(runnable).start();
+            }
+        };
+    }
+
+    //ASYNC
+    View.OnClickListener myEqualHandler()  {
+        return new View.OnClickListener() {
+            public void onClick(View v) {
+                new AsyncEqual().execute();
+            }
+        };
+    }
+
+    private class AsyncEqual extends AsyncTask<Void, Integer, String> {
+        protected String doInBackground(Void... vals) {
+            String stringTo = "";
+
+            secondValue = Float.parseFloat(operationTextView.getText() + "");
+
+            if ( boolAddition) {
+                stringTo = firstValue+secondValue + "";
+
+                boolAddition= false;
+            }else if (boolSub) {
+                stringTo = firstValue-secondValue + "";
+                boolSub= false;
+            }else if(boolMul) {
+                stringTo = firstValue*secondValue + "";
+                boolMul= false;
+            }else if(boolDiv) {
+                stringTo = firstValue/secondValue + "";
+                boolDiv= false;
+            }
+
+            return stringTo;
+        }
+        protected void onProgressUpdate(Integer... progress) {
+            //...
+        }
+        protected void onPostExecute(String result) {
+
+            //Affiche le resultat
+            resultTextView.setText(result);
+            operationTextView.setText(null);
+        }
     }
 
     public void myClickHandler(View view) {
@@ -126,34 +222,6 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 break;
-
-            case R.id.button_equal:
-                secondValue = Float.parseFloat(operationTextView.getText() + "");
-
-                if ( boolAddition) {
-                    resultTextView.setText(firstValue+secondValue + "");
-                    operationTextView.setText(null);
-                    boolAddition= false;
-                }else if (boolSub) {
-                    resultTextView.setText(firstValue-secondValue + "");
-                    operationTextView.setText(null);
-                    boolSub= false;
-                }else if(boolMul) {
-                    resultTextView.setText(firstValue*secondValue + "");
-                    operationTextView.setText(null);
-                    boolMul= false;
-                }else if(boolDiv) {
-                    resultTextView.setText(firstValue/secondValue + "");
-                    operationTextView.setText(null);
-                    boolDiv= false;
-                }
-
-
-                break;
-
-
-
-
 
 
         }
